@@ -30,6 +30,14 @@ const userSchema = new mongoose.Schema({
   socketId: {
     type: String,
   },
+
+  // 👇 Forgot / reset password ke liye nayi fields
+  resetPasswordToken: {
+    type: String,
+  },
+  resetPasswordExpires: {
+    type: Date,
+  },
 });
 
 userSchema.methods.generateAuthToken = function () {

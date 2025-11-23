@@ -32,6 +32,32 @@ router.post(
   userController.loginUser
 );
 
+
+
+// 🔹 Forgot password
+router.post(
+  "/forgot-password",
+  [
+    body("email").isEmail().withMessage("Invalid Email"),
+  ],
+  userController.forgotPassword
+);
+
+// 🔹 Reset password
+router.post(
+  "/reset-password",
+  [
+    body("token").notEmpty().withMessage("Token is required"),
+    body("password")
+      .isLength({ min: 6 })
+      .withMessage("Password must be at least 6 characters long"),
+  ],
+  userController.resetPassword
+);
+
+
+
+
 router.get(
   "/profile",
   authMiddleware.authUser,
