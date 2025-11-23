@@ -22,32 +22,48 @@ const UserSignup = () => {
 
 
   const submitHandler = async (e) => {
-    e.preventDefault()
-    const newUser = {
-      fullname: {
-        firstname: firstName,
-        lastname: lastName
-      },
-      email: email,
-      password: password
-    }
+  e.preventDefault();
 
-    const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/users/register`, newUser)
+  const newUser = {
+    fullname: {
+      firstname: firstName,
+      lastname: lastName,
+    },
+    email: email,
+    password: password,
+  };
+
+  try {
+    const response = await axios.post(
+      `${import.meta.env.VITE_BASE_URL}/users/register`,
+      newUser
+    );
 
     if (response.status === 201) {
-      const data = response.data
-      setUser(data.user)
-      localStorage.setItem('token', data.token)
-      navigate('/home')
+      const data = response.data;
+      setUser(data.user);
+      localStorage.setItem('token', data.token);
+      navigate('/home');
+    } else {
+      // Agar kisi reason se 201 nahi aaya
+      alert('Signup failed. Please try again.');
     }
-
-
-    setEmail('')
-    setFirstName('')
-    setLastName('')
-    setPassword('')
-
+  } catch (err) {
+    console.error('User signup error:', err);
+    // Backend se aaya hua message dikhane ki koshish
+    alert(
+      err.response?.data?.message ||
+      err.response?.data?.errors?.[0]?.msg ||
+      'Signup request failed. Check server / URL / input.'
+    );
   }
+
+  setEmail('');
+  setFirstName('');
+  setLastName('');
+  setPassword('');
+};
+
   return (
     <div>
       <div className='p-7 h-screen flex flex-col justify-between'>
