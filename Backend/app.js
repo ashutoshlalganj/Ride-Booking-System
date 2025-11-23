@@ -17,7 +17,17 @@ const app = express();
 
 connectToDb();
 
-app.use(cors());
+
+app.use(
+  cors({
+    origin: "https://skb5nx5w-5173.inc1.devtunnels.ms", // your FRONTEND tunnel URL
+    credentials: true,
+  })
+);
+
+
+
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
