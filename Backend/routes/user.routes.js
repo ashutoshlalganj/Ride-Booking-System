@@ -32,18 +32,14 @@ router.post(
   userController.loginUser
 );
 
-
-
-// 🔹 Forgot password
+// Forgot password
 router.post(
   "/forgot-password",
-  [
-    body("email").isEmail().withMessage("Invalid Email"),
-  ],
+  [body("email").isEmail().withMessage("Invalid Email")],
   userController.forgotPassword
 );
 
-// 🔹 Reset password
+// Reset password
 router.post(
   "/reset-password",
   [
@@ -55,15 +51,34 @@ router.post(
   userController.resetPassword
 );
 
-
-
-
+// Profile
 router.get(
   "/profile",
   authMiddleware.authUser,
   userController.getUserProfile
 );
 
+// Logout
 router.get("/logout", authMiddleware.authUser, userController.logoutUser);
+
+// ⭐ Saved places
+router.get(
+  "/saved-places",
+  authMiddleware.authUser,
+  userController.getSavedPlaces
+);
+
+router.post(
+  "/saved-places",
+  authMiddleware.authUser,
+  [
+    body("label").notEmpty().withMessage("Label is required"),
+    body("address")
+      .isString()
+      .isLength({ min: 3 })
+      .withMessage("Address too short"),
+  ],
+  userController.addSavedPlace
+);
 
 export default router;

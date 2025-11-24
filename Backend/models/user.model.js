@@ -4,6 +4,22 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
+const savedPlaceSchema = new mongoose.Schema(
+  {
+    label: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    address: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+  },
+  { _id: false }
+);
+
 const userSchema = new mongoose.Schema({
   fullname: {
     firstname: {
@@ -27,11 +43,15 @@ const userSchema = new mongoose.Schema({
     required: true,
     select: false,
   },
+
+  // ⭐ NEW: saved places
+  savedPlaces: [savedPlaceSchema],
+
   socketId: {
     type: String,
   },
 
-  // 👇 Forgot / reset password ke liye nayi fields
+  // Forgot / reset password
   resetPasswordToken: {
     type: String,
   },

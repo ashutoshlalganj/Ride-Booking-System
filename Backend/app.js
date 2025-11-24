@@ -8,11 +8,9 @@ import dotenv from "dotenv";
 import userRoutes from "./routes/user.routes.js";
 import captainRoutes from "./routes/captain.routes.js";
 import rideRoutes from "./routes/ride.routes.js";
-
-import connectToDb from "./db/db.js";   // ✅ DB connect function import
+import mapsRoutes from "./routes/maps.routes.js"; // ✅ NEW
 
 dotenv.config();
-connectToDb();                         // ✅ yahi pe DB se connect
 
 const app = express();
 
@@ -31,7 +29,7 @@ app.use(
 
       if (
         allowedOrigins.includes(origin) ||
-        origin.endsWith(".devtunnels.ms") // koi bhi devtunnel allow
+        (origin && origin.endsWith(".devtunnels.ms")) // koi bhi devtunnel allow
       ) {
         return callback(null, true);
       }
@@ -51,6 +49,7 @@ app.use(cookieParser());
 app.use("/users", userRoutes);
 app.use("/captains", captainRoutes);
 app.use("/rides", rideRoutes);
+app.use("/maps", mapsRoutes); // ✅ yahi se /maps/get-suggestions, etc. chalega
 // -------------------------------
 
 app.get("/", (req, res) => {
@@ -58,3 +57,5 @@ app.get("/", (req, res) => {
 });
 
 export default app;
+
+

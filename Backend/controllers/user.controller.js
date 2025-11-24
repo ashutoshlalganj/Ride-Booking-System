@@ -218,3 +218,70 @@ export const resetPassword = async (req, res) => {
     });
   }
 };
+
+
+//  New function address
+
+// ================== SAVED PLACES ==================
+
+// GET /users/saved-places
+export const getSavedPlaces = async (req, res) => {
+  try {
+    const user = await userModel
+      .findById(req.user._id)
+      .select("savedPlaces");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.status(200).json(user.savedPlaces || []);
+  } catch (err) {
+    console.error("GET SAVED PLACES ERROR:", err);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+// POST /users/saved-places
+// body: { label, address }
+export const addSavedPlace = async (req, res) => {
+  try {
+    const { label, address } = req.body;
+
+    if (!label || !address) {
+      return res
+        .status(400)
+        .json({ message: "Label and address are required" });
+    }
+
+    const user = await userModel.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Duplicate check (same address)
+    const already = (user.savedPlaces || []).find(
+      (p) =>
+        p.address.toLowerCase() === address.toLowerCase() &&
+        p.label.toLowerCase() === label.toLowerCase()
+    );
+
+    if (already) {
+      return res
+        .status(200)
+        .json({ message: "Place already saved", savedPlaces: user.savedPlaces });
+    }
+
+    user.savedPlaces.push({ label, address });
+    await user.save();
+
+    return res.status(201).json({
+      message: "Place saved",
+      savedPlaces: user.savedPlaces,
+    });
+  } catch (err) {
+    console.error("ADD SAVED PLACE ERROR:", err);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+};

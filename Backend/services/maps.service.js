@@ -3,6 +3,7 @@
 import axios from "axios";
 import captainModel from "../models/captain.model.js";
 
+// 🔹 Address → coordinates
 export async function getAddressCoordinate(address) {
   const apiKey = process.env.GOOGLE_MAPS_API;
   const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
@@ -15,7 +16,7 @@ export async function getAddressCoordinate(address) {
     if (response.data.status === "OK") {
       const location = response.data.results[0].geometry.location;
       return {
-        ltd: location.lat,
+        ltd: location.lat, // project ke hisaab se ltd hi rehne do
         lng: location.lng,
       };
     } else {
@@ -27,6 +28,7 @@ export async function getAddressCoordinate(address) {
   }
 }
 
+// 🔹 Distance + time
 export async function getDistanceTime(origin, destination) {
   if (!origin || !destination) {
     throw new Error("Origin and destination are required");
@@ -55,6 +57,7 @@ export async function getDistanceTime(origin, destination) {
   }
 }
 
+// 🔹 Google Places Autocomplete
 export async function getAutoCompleteSuggestions(input) {
   if (!input) {
     throw new Error("query is required");
@@ -69,6 +72,7 @@ export async function getAutoCompleteSuggestions(input) {
     const response = await axios.get(url);
 
     if (response.data.status === "OK") {
+      // sirf string array return kar rahe hain
       return response.data.predictions
         .map((prediction) => prediction.description)
         .filter((value) => value);
@@ -81,6 +85,7 @@ export async function getAutoCompleteSuggestions(input) {
   }
 }
 
+// 🔹 Radius ke andar captains
 export async function getCaptainsInTheRadius(ltd, lng, radius) {
   // radius in km
   const captains = await captainModel.find({
