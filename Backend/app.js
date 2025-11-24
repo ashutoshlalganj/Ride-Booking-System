@@ -1,44 +1,60 @@
-// app.js  (ES Module version)
-
-import dotenv from "dotenv";
-dotenv.config();
+// app.js
 
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import dotenv from "dotenv";
 
-import connectToDb from "./db/db.js";
 import userRoutes from "./routes/user.routes.js";
 import captainRoutes from "./routes/captain.routes.js";
-import mapsRoutes from "./routes/maps.routes.js";
 import rideRoutes from "./routes/ride.routes.js";
+
+import connectToDb from "./db/db.js";   // ✅ DB connect function import
+
+dotenv.config();
+connectToDb();                         // ✅ yahi pe DB se connect
 
 const app = express();
 
-connectToDb();
-
+// ------------ CORS CONFIG (IMPORTANT) ------------
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://localhost:5173",
+  process.env.FRONTEND_URL, // e.g. https://skb5nx5w-5173.inc1.devtunnels.ms
+];
 
 app.use(
   cors({
-    origin: "https://skb5nx5w-5173.inc1.devtunnels.ms", // your FRONTEND tunnel URL
+    origin: (origin, callback) => {
+      // Postman ya server-side ke liye (origin null hota hai)
+      if (!origin) return callback(null, true);
+
+      if (
+        allowedOrigins.includes(origin) ||
+        origin.endsWith(".devtunnels.ms") // koi bhi devtunnel allow
+      ) {
+        return callback(null, true);
+      }
+
+      console.log("❌ CORS blocked origin:", origin);
+      return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
   })
 );
-
-
-
+// -------------------------------------------------
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-app.get("/", (req, res) => {
-  res.send("Hello World");
-});
-
+// ------------ ROUTES ------------
 app.use("/users", userRoutes);
 app.use("/captains", captainRoutes);
-app.use("/maps", mapsRoutes);
 app.use("/rides", rideRoutes);
+// -------------------------------
+
+app.get("/", (req, res) => {
+  res.send("Taxi backend is running ✅");
+});
 
 export default app;

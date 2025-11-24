@@ -1,163 +1,220 @@
 // controllers/user.controller.js
 
 import userModel from "../models/user.model.js";
-import * as userService from "../services/user.service.js";
 import { validationResult } from "express-validator";
 import blackListTokenModel from "../models/blackListToken.model.js";
 import crypto from "crypto";
 
 // ================== REGISTER USER ==================
-export const registerUser = async (req, res, next) => {
+export const registerUser = async (req, res) => {
+  // 1) Validation error ko readable bana diya
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    const firstError = errors.array()[0]?.msg || "Invalid input";
+    return res.status(400).json({
+      message: firstError,
+      errors: errors.array(),
+    });
   }
 
-  const { fullname, email, password } = req.body;
+  try {
+    const { fullname, email, password } = req.body;
 
-  const isUserAlready = await userModel.findOne({ email });
+    if (!fullname || !fullname.firstname) {
+      return res
+        .status(400)
+        .json({ message: "First name (fullname.firstname) is required" });
+    }
 
-  if (isUserAlready) {
-    return res.status(400).json({ message: "User already exist" });
+    // 2) Already existing user check
+    const isUserAlready = await userModel.findOne({ email });
+    if (isUserAlready) {
+      return res.status(400).json({ message: "User already exist" });
+    }
+
+    // 3) Password hash yahi par (userService ki dependency hata di)
+    const hashedPassword = await userModel.hashPassword(password);
+
+    const user = await userModel.create({
+      fullname: {
+        firstname: fullname.firstname,
+        lastname: fullname.lastname,
+      },
+      email,
+      password: hashedPassword,
+    });
+
+    const token = user.generateAuthToken();
+
+    return res.status(201).json({ token, user });
+  } catch (err) {
+    console.error("REGISTER USER ERROR:", err);
+    return res.status(500).json({
+      message: "Something went wrong while creating account",
+    });
   }
-
-  // ⚠️ Yahan password ko hash NAHI karna
-  // Plain password service ko bhej rahe hain, wahan hash hoga
-  const user = await userService.createUser({
-    firstname: fullname.firstname,
-    lastname: fullname.lastname,
-    email,
-    password, // <- plain password
-  });
-
-  const token = user.generateAuthToken();
-
-  res.status(201).json({ token, user });
 };
 
 // ================== LOGIN USER ==================
-export const loginUser = async (req, res, next) => {
+export const loginUser = async (req, res) => {
+  // 1) Validation
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    const firstError = errors.array()[0]?.msg || "Invalid input";
+    return res.status(400).json({
+      message: firstError,
+      errors: errors.array(),
+    });
   }
 
-  const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
 
-  const user = await userModel.findOne({ email }).select("+password");
+    // 2) User find + password field include
+    const user = await userModel.findOne({ email }).select("+password");
 
-  if (!user) {
-    return res.status(401).json({ message: "Invalid email or password" });
+    if (!user) {
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
+
+    // 3) Password compare
+    const isMatch = await user.comparePassword(password);
+
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
+
+    // 4) Token generate
+    const token = user.generateAuthToken();
+
+    // Cookie optional hai (frontend already token ko localStorage me store kar raha hai)
+    res.cookie("token", token);
+
+    return res.status(200).json({ token, user });
+  } catch (err) {
+    console.error("LOGIN USER ERROR:", err);
+    return res.status(500).json({
+      message: "Something went wrong while logging in",
+    });
   }
-
-  const isMatch = await user.comparePassword(password);
-
-  if (!isMatch) {
-    return res.status(401).json({ message: "Invalid email or password" });
-  }
-
-  const token = user.generateAuthToken();
-
-  res.cookie("token", token);
-
-  res.status(200).json({ token, user });
 };
 
 // ================== GET USER PROFILE ==================
-export const getUserProfile = async (req, res, next) => {
-  res.status(200).json(req.user);
+export const getUserProfile = async (req, res) => {
+  return res.status(200).json(req.user);
 };
 
 // ================== LOGOUT USER ==================
-export const logoutUser = async (req, res, next) => {
-  res.clearCookie("token");
-  const token =
-    req.cookies.token || req.headers.authorization?.split(" ")[1];
+export const logoutUser = async (req, res) => {
+  try {
+    res.clearCookie("token");
 
-  if (token) {
-    await blackListTokenModel.create({ token });
+    const token =
+      req.cookies.token || req.headers.authorization?.split(" ")[1];
+
+    if (token) {
+      await blackListTokenModel.create({ token });
+    }
+
+    return res.status(200).json({ message: "Logged out" });
+  } catch (err) {
+    console.error("LOGOUT ERROR:", err);
+    return res.status(500).json({ message: "Something went wrong" });
   }
-
-  res.status(200).json({ message: "Logged out" });
 };
 
 // ================== FORGOT PASSWORD ==================
-export const forgotPassword = async (req, res, next) => {
+export const forgotPassword = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    const firstError = errors.array()[0]?.msg || "Invalid input";
+    return res.status(400).json({
+      message: firstError,
+      errors: errors.array(),
+    });
   }
 
-  const { email } = req.body;
+  try {
+    const { email } = req.body;
 
-  if (!email) {
-    return res.status(400).json({ message: "Email is required" });
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const user = await userModel.findOne({ email });
+
+    // Security: same response chahe user ho ya na ho
+    if (!user) {
+      return res.status(200).json({
+        message: "If this email exists, reset link has been sent",
+      });
+    }
+
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 min
+
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = resetPasswordExpires;
+    await user.save();
+
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+    console.log("Password reset link:", resetUrl);
+
+    return res.status(200).json({
+      message: "If this email exists, reset link has been sent",
+    });
+  } catch (err) {
+    console.error("FORGOT PASSWORD ERROR:", err);
+    return res.status(500).json({
+      message: "Something went wrong while sending reset link",
+    });
   }
-
-  const user = await userModel.findOne({ email });
-
-  // Security ke liye generic response, chahe user ho ya na ho
-  if (!user) {
-    return res
-      .status(200)
-      .json({ message: "If this email exists, reset link has been sent" });
-  }
-
-  // Random token generate karo
-  const resetToken = crypto.randomBytes(32).toString("hex");
-  // ✅ yahan Date object use karo
-  const resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
-
-  user.resetPasswordToken = resetToken;
-  user.resetPasswordExpires = resetPasswordExpires;
-
-  await user.save();
-
-  // Frontend reset URL (.env me FRONTEND_URL set hona chahiye)
-  const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
-
-  // Dev ke liye console me print
-  console.log("Password reset link:", resetUrl);
-
-  return res
-    .status(200)
-    .json({ message: "If this email exists, reset link has been sent" });
 };
 
 // ================== RESET PASSWORD ==================
-export const resetPassword = async (req, res, next) => {
+export const resetPassword = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    const firstError = errors.array()[0]?.msg || "Invalid input";
+    return res.status(400).json({
+      message: firstError,
+      errors: errors.array(),
+    });
   }
 
-  const { token, password } = req.body;
+  try {
+    const { token, password } = req.body;
 
-  if (!token || !password) {
-    return res
-      .status(400)
-      .json({ message: "Token and new password are required" });
+    if (!token || !password) {
+      return res
+        .status(400)
+        .json({ message: "Token and new password are required" });
+    }
+
+    const user = await userModel
+      .findOne({
+        resetPasswordToken: token,
+        resetPasswordExpires: { $gt: Date.now() },
+      })
+      .select("+password");
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid or expired token" });
+    }
+
+    const hashedPassword = await userModel.hashPassword(password);
+
+    user.password = hashedPassword;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+
+    await user.save();
+
+    return res.status(200).json({ message: "Password reset successfully" });
+  } catch (err) {
+    console.error("RESET PASSWORD ERROR:", err);
+    return res.status(500).json({
+      message: "Something went wrong while resetting password",
+    });
   }
-
-  // Valid (non-expired) token ke basis par user dhundo
-  const user = await userModel
-    .findOne({
-      resetPasswordToken: token,
-      resetPasswordExpires: { $gt: Date.now() },
-    })
-    .select("+password");
-
-  if (!user) {
-    return res.status(400).json({ message: "Invalid or expired token" });
-  }
-
-  const hashedPassword = await userModel.hashPassword(password);
-
-  user.password = hashedPassword;
-  user.resetPasswordToken = undefined;
-  user.resetPasswordExpires = undefined;
-
-  await user.save();
-
-  return res.status(200).json({ message: "Password reset successfully" });
 };

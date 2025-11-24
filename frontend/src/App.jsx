@@ -1,4 +1,4 @@
-// App.jsx
+// src/App.jsx
 import React from 'react'
 import { Route, Routes } from 'react-router-dom'
 import Start from './pages/Start'
@@ -16,27 +16,30 @@ import Riding from './pages/Riding'
 import CaptainRiding from './pages/CaptainRiding'
 import 'remixicon/fonts/remixicon.css'
 
-// ✅ Forgot / Reset password pages import karo
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
+import UserTrips from './pages/UserTrips'
 
 const App = () => {
   return (
     <div>
       <Routes>
         <Route path='/' element={<Start />} />
+
         <Route path='/login' element={<UserLogin />} />
+        <Route path='/signup' element={<UserSignup />} />
+
         <Route path='/riding' element={<Riding />} />
         <Route path='/captain-riding' element={<CaptainRiding />} />
 
-        {/* ✅ Forgot / Reset password routes (no protect wrapper) */}
+        {/* Forgot / Reset password */}
         <Route path='/forgot-password' element={<ForgotPassword />} />
         <Route path='/reset-password/:token' element={<ResetPassword />} />
 
-        <Route path='/signup' element={<UserSignup />} />
         <Route path='/captain-login' element={<Captainlogin />} />
         <Route path='/captain-signup' element={<CaptainSignup />} />
 
+        {/* Protected user routes */}
         <Route
           path='/home'
           element={
@@ -55,6 +58,7 @@ const App = () => {
           }
         />
 
+        {/* Protected captain routes */}
         <Route
           path='/captain-home'
           element={
@@ -70,6 +74,16 @@ const App = () => {
             <CaptainProtectWrapper>
               <CaptainLogout />
             </CaptainProtectWrapper>
+          }
+        />
+
+        {/* ✅ Trips route AB Routes ke andar hai */}
+        <Route
+          path='/trips'
+          element={
+            <UserProtectWrapper>
+              <UserTrips />
+            </UserProtectWrapper>
           }
         />
       </Routes>

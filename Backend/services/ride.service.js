@@ -70,6 +70,7 @@ export async function createRide({ user, pickup, destination, vehicleType }) {
     destination,
     otp: getOtp(6),
     fare: fare[vehicleType],
+    vehicleType, // 👉 ADD
   });
 
   return ride;

@@ -1,99 +1,134 @@
-import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { useNavigate } from 'react-router-dom'
+import React, { useState, useContext } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { CaptainDataContext } from '../context/CapatainContext'
 
 const Captainlogin = () => {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  const [ email, setEmail ] = useState('')
-  const [ password, setPassword ] = useState('')
-
-  const { captain, setCaptain } = React.useContext(CaptainDataContext)
+  const { setCaptain } = useContext(CaptainDataContext)
   const navigate = useNavigate()
 
-
-
   const submitHandler = async (e) => {
-  e.preventDefault();
+    e.preventDefault()
 
-  const captain = {
-    email: email,
-    password: password,
-  };
+    const captain = { email, password }
 
-  try {
-    const response = await axios.post(
-      `${import.meta.env.VITE_BASE_URL}/captains/login`,
-      captain
-    );
+    try {
+      setLoading(true)
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/captains/login`,
+        captain
+      )
 
-    if (response.status === 200) {
-      const data = response.data;
-
-      setCaptain(data.captain);
-      localStorage.setItem('token', data.token);
-      navigate('/captain-home');
-    } else {
-      alert('Login failed. Please try again.');
+      if (response.status === 200) {
+        const data = response.data
+        setCaptain(data.captain)
+        localStorage.setItem('token', data.token)
+        navigate('/captain-home')
+      } else {
+        alert('Login failed. Please try again.')
+      }
+    } catch (err) {
+      console.error('Captain login error:', err)
+      alert(
+        err.response?.data?.message ||
+          err.response?.data?.errors?.[0]?.msg ||
+          'Login request failed.'
+      )
+    } finally {
+      setLoading(false)
     }
-  } catch (err) {
-    console.error('Captain login error:', err);
-    alert(
-      err.response?.data?.message ||
-      err.response?.data?.errors?.[0]?.msg ||
-      'Login request failed. Check email/password or server.'
-    );
   }
 
-  setEmail('');
-  setPassword('');
-};
-
   return (
-    <div className='p-7 h-screen flex flex-col justify-between'>
-      <div>
-        <img className='w-20 mb-3' src="https://pngimg.com/d/taxi_logos_PNG2.png" alt="" />
-
-        <form onSubmit={(e) => {
-          submitHandler(e)
-        }}>
-          <h3 className='text-lg font-medium mb-2'>What's your email</h3>
-          <input
-            required
-            value={email}
-            onChange={(e) => {
-              setEmail(e.target.value)
-            }}
-            className='bg-[#eeeeee] mb-7 rounded-lg px-4 py-2 border w-full text-lg placeholder:text-base'
-            type="email"
-            placeholder='email@example.com'
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="w-full max-w-md bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
+        {/* Logo */}
+        <div className="flex flex-col items-center mb-6">
+          <img
+            className="w-12 mb-2"
+            src="https://pngimg.com/d/taxi_logos_PNG2.png"
+            alt="Taxi"
           />
+          <p className="text-xs uppercase tracking-[0.2em] text-gray-500">
+            Captain account
+          </p>
+        </div>
 
-          <h3 className='text-lg font-medium mb-2'>Enter Password</h3>
+        {/* Heading */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-semibold text-gray-900">
+            Sign in to drive
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Access your captain dashboard and start accepting rides.
+          </p>
+        </div>
 
-          <input
-            className='bg-[#eeeeee] mb-7 rounded-lg px-4 py-2 border w-full text-lg placeholder:text-base'
-            value={password}
-            onChange={(e) => {
-              setPassword(e.target.value)
-            }}
-            required type="password"
-            placeholder='password'
-          />
+        {/* Form */}
+        <form onSubmit={submitHandler} className="space-y-4">
+          <div>
+            <label className="text-sm font-medium text-gray-800 mb-1 block">
+              What&apos;s your email
+            </label>
+            <input
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="bg-gray-50 rounded-xl px-4 py-2.5 border border-gray-200 w-full text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black/80 focus:border-black"
+              type="email"
+              placeholder="email@example.com"
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-gray-800 mb-1 block">
+              Enter password
+            </label>
+            <input
+              className="bg-gray-50 rounded-xl px-4 py-2.5 border border-gray-200 w-full text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black/80 focus:border-black"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              type="password"
+              placeholder="password"
+            />
+          </div>
 
           <button
-            className='bg-[#111] text-white font-semibold mb-3 rounded-lg px-4 py-2 w-full text-lg placeholder:text-base'
-          >Login</button>
-
+            type="submit"
+            disabled={loading}
+            className="mt-2 inline-flex w-full items-center justify-center rounded-xl bg-black text-white text-sm font-semibold py-2.5 hover:bg-black/90 disabled:opacity-60"
+          >
+            {loading ? 'Logging in...' : 'Login as Captain'}
+          </button>
         </form>
-        <p className='text-center'>Join a fleet? <Link to='/captain-signup' className='text-blue-600'>Register as a Captain</Link></p>
-      </div>
-      <div>
-        <Link
-          to='/login'
-          className='bg-[#d5622d] flex items-center justify-center text-white font-semibold mb-5 rounded-lg px-4 py-2 w-full text-lg placeholder:text-base'
-        >Sign in as User</Link>
+
+        {/* Bottom links */}
+        <div className="mt-6 space-y-2 text-center text-sm">
+          <p className="text-gray-600">
+            New to Taxi as a captain?{' '}
+            <Link
+              to="/captain-signup"
+              className="text-black font-medium underline"
+            >
+              Register as Captain
+            </Link>
+          </p>
+
+          <p className="text-xs text-gray-500">
+            Want to book rides instead?{' '}
+            <Link
+              to="/login"
+              className="text-blue-600 font-medium hover:underline"
+            >
+              Sign in as User
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   )

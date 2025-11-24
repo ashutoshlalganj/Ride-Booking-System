@@ -64,4 +64,17 @@ router.post(
   rideController.endRide
 );
 
+router.get(
+  "/user",
+  authMiddleware.authUser,
+  rideController.getUserRides
+);
+
+router.get(
+  "/captain",
+  authMiddleware.authCaptain,
+  rideController.getCaptainRides
+);
+
+
 export default router;
