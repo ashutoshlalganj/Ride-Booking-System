@@ -15,7 +15,6 @@ export const authUser = async (req, res, next) => {
   }
 
   const isBlacklisted = await blackListTokenModel.findOne({ token });
-
   if (isBlacklisted) {
     return res.status(401).json({ message: "Unauthorized" });
   }
@@ -23,6 +22,10 @@ export const authUser = async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await userModel.findById(decoded._id);
+
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
 
     req.user = user;
     return next();
@@ -41,7 +44,6 @@ export const authCaptain = async (req, res, next) => {
   }
 
   const isBlacklisted = await blackListTokenModel.findOne({ token });
-
   if (isBlacklisted) {
     return res.status(401).json({ message: "Unauthorized" });
   }
@@ -49,6 +51,10 @@ export const authCaptain = async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const captain = await captainModel.findById(decoded._id);
+
+    if (!captain) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
 
     req.captain = captain;
     return next();

@@ -67,17 +67,17 @@ const Home = () => {
     }
   }, [socket, user, navigate])
 
-  // ---------- AUTOCOMPLETE HANDLERS (min 3 chars + safe mapping) ----------
+  // ---------- AUTOCOMPLETE HANDLERS ----------
 
   const mapSuggestions = (data) => {
-    // backend agar array de raha ho to
     if (Array.isArray(data)) {
-      return data.map((item) =>
-        typeof item === 'string' ? item : item.description || ''
-      ).filter(Boolean)
+      return data
+        .map((item) =>
+          typeof item === 'string' ? item : item.description || ''
+        )
+        .filter(Boolean)
     }
 
-    // agar { predictions: [...] } jaisa object hai to
     if (Array.isArray(data?.predictions)) {
       return data.predictions
         .map((p) =>
@@ -93,7 +93,6 @@ const Home = () => {
     const value = e.target.value
     setPickup(value)
 
-    // 3 se kam characters pe API mat hit karo
     if (value.trim().length < 3) {
       setPickupSuggestions([])
       return
@@ -172,7 +171,6 @@ const Home = () => {
 
       setFare(response.data)
 
-      // sequence start: Choose Vehicle
       setVehiclePanel(true)
       setConfirmRidePanel(false)
       setVehicleFound(false)
@@ -200,7 +198,6 @@ const Home = () => {
       )
 
       console.log('Ride created:', response.data)
-      // backend yahin se captain ko socket event bhej raha hoga
     } catch (err) {
       console.error(err)
     }
@@ -209,7 +206,6 @@ const Home = () => {
   // ------------------- MIDDLE COLUMN VIEW -------------------
 
   const renderCenterPanel = () => {
-    // 1) Choose Vehicle
     if (vehiclePanel) {
       return (
         <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-5 h-max">
@@ -221,7 +217,6 @@ const Home = () => {
             selectVehicle={setVehicleType}
             fare={fare}
             setConfirmRidePanel={(val) => {
-              // VehiclePanel jab user koi option choose karega to true karega
               if (val) {
                 setConfirmRidePanel(true)
                 setVehiclePanel(false)
@@ -235,7 +230,6 @@ const Home = () => {
       )
     }
 
-    // 2) Confirm your Ride
     if (confirmRidePanel) {
       return (
         <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-5 h-max">
@@ -244,12 +238,10 @@ const Home = () => {
             destination={destination}
             fare={fare}
             vehicleType={vehicleType}
-            // BACK: wapas choose vehicle
             onBack={() => {
               setConfirmRidePanel(false)
               setVehiclePanel(true)
             }}
-            // CONFIRM: ride create + LookingForDriver
             onConfirm={async () => {
               await createRide()
               setConfirmRidePanel(false)
@@ -260,7 +252,6 @@ const Home = () => {
       )
     }
 
-    // 3) Looking for Driver
     if (vehicleFound) {
       return (
         <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-5 h-max">
@@ -276,7 +267,6 @@ const Home = () => {
       )
     }
 
-    // 4) Driver mil gaya, wait kar rahe ho
     if (waitingForDriver) {
       return (
         <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-5 h-max">
@@ -290,7 +280,6 @@ const Home = () => {
       )
     }
 
-    // Default info (kuch bhi select nahi kiya)
     return (
       <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-6 text-sm text-gray-500">
         <h2 className="text-lg font-semibold text-gray-900 mb-2">
@@ -308,9 +297,9 @@ const Home = () => {
   // ------------------- JSX LAYOUT -------------------
 
   return (
-    <div className="h-screen w-full bg-gray-50 flex flex-col md:flex-row overflow-hidden">
+    <div className="min-h-screen w-full bg-gray-50 flex flex-col md:flex-row">
       {/* LEFT: Find a trip */}
-      <div className="w-full md:w-[32%] h-1/2 md:h-full flex items-end md:items-start md:justify-end relative">
+      <div className="w-full md:w-[32%] md:h-full flex items-end md:items-start md:justify-end relative">
         <div className="w-full md:w-[90%] max-w-md mx-auto md:mx-0 bg-white rounded-t-3xl md:rounded-3xl shadow-[0_-12px_40px_rgba(0,0,0,0.18)] md:shadow-xl border border-gray-100 p-5 md:p-6 mt-4 md:mt-10">
           <div className="flex items-start justify-between mb-3">
             <div className="flex items-center gap-3">
@@ -426,18 +415,18 @@ const Home = () => {
         )}
       </div>
 
-      {/* MIDDLE column */}
-      <div className="hidden md:flex w-[36%] h-full items-start justify-center pt-10">
+      {/* MIDDLE column – desktop */}
+      <div className="hidden md:flex w-[36%] md:h-full items-start justify-center pt-10">
         {renderCenterPanel()}
       </div>
 
       {/* MOBILE center */}
-      <div className="md:hidden w-full">
-        <div className="px-3 pb-3">{renderCenterPanel()}</div>
+      <div className="md:hidden w-full px-3 pb-3">
+        {renderCenterPanel()}
       </div>
 
       {/* RIGHT: Map */}
-      <div className="w-full md:w-[32%] h-1/2 md:h-full">
+      <div className="w-full md:w-[32%] h-[40vh] md:h-full">
         <LiveTracking pickup={pickup} destination={destination} />
       </div>
     </div>
@@ -445,4 +434,3 @@ const Home = () => {
 }
 
 export default Home
-

@@ -6,6 +6,8 @@ import * as mapService from "../services/maps.service.js";
 import { sendMessageToSocketId } from "../socket.js";
 import rideModel from "../models/ride.model.js";
 
+// ---------------- CREATE & FARE ----------------
+
 export const createRide = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -66,6 +68,8 @@ export const getFare = async (req, res) => {
   }
 };
 
+// ---------------- CAPTAIN FLOW ----------------
+
 export const confirmRide = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -107,8 +111,6 @@ export const startRide = async (req, res) => {
       captain: req.captain,
     });
 
-    console.log(ride);
-
     sendMessageToSocketId(ride.user.socketId, {
       event: "ride-started",
       data: ride,
@@ -120,6 +122,8 @@ export const startRide = async (req, res) => {
   }
 };
 
+// ✅ Captain: END RIDE – yahan service pe depend nahi kar rahe, directly DB
+
 export const endRide = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -129,22 +133,48 @@ export const endRide = async (req, res) => {
   const { rideId } = req.body;
 
   try {
-    const ride = await rideService.endRide({
-      rideId,
-      captain: req.captain,
-    });
+    // sirf wahi ride jisme ye captain assigned hai
+    let ride = await rideModel
+      .findOne({
+        _id: rideId,
+        captain: req.captain._id,
+      })
+      .populate("user")
+      .populate("captain");
 
-    sendMessageToSocketId(ride.user.socketId, {
-      event: "ride-ended",
-      data: ride,
-    });
+    if (!ride) {
+      return res
+        .status(404)
+        .json({ message: "Ride not found for this captain" });
+    }
 
-    return res.status(200).json(ride);
+    // already completed ho to bhi OK
+    if (ride.status !== "completed") {
+      ride.status = "completed";
+      // optional: ride.endedAt = new Date();
+      await ride.save();
+    }
+
+    // user ko notify karo
+    if (ride.user?.socketId) {
+      sendMessageToSocketId(ride.user.socketId, {
+        event: "ride-ended",
+        data: ride,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Ride ended successfully",
+      ride,
+    });
   } catch (err) {
-    return res.status(500).json({ message: err.message });
+    console.log("End ride error:", err);
+    return res.status(500).json({ message: "Failed to end ride" });
   }
 };
 
+// ---------------- RIDES LIST ----------------
 
 export const getUserRides = async (req, res) => {
   try {
@@ -169,5 +199,58 @@ export const getCaptainRides = async (req, res) => {
     return res.status(200).json(rides);
   } catch (err) {
     return res.status(500).json({ message: err.message });
+  }
+};
+
+// ---------------- USER: CASH COMPLETE ----------------
+
+export const completeRideCash = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const { rideId } = req.body;
+
+  try {
+    let ride = await rideModel
+      .findById(rideId)
+      .populate("user")
+      .populate("captain");
+
+    if (!ride) {
+      return res.status(404).json({ message: "Ride not found" });
+    }
+
+    if (ride.user._id.toString() !== req.user._id.toString()) {
+      return res
+        .status(403)
+        .json({ message: "Not allowed to update this ride" });
+    }
+
+    if (ride.status !== "completed") {
+      ride.status = "completed";
+      // optional: ride.paymentMethod = "cash";
+      // ride.endedAt = new Date();
+      await ride.save();
+    }
+
+    if (ride.captain && ride.captain.socketId) {
+      sendMessageToSocketId(ride.captain.socketId, {
+        event: "ride-ended",
+        data: ride,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Ride completed successfully (cash).",
+      ride,
+    });
+  } catch (err) {
+    console.log(err);
+    return res
+      .status(500)
+      .json({ success: false, message: "Failed to complete ride" });
   }
 };

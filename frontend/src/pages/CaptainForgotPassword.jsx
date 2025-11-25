@@ -86,3 +86,4 @@ const CaptainForgotPassword = () => {
 }
 
 export default CaptainForgotPassword
+

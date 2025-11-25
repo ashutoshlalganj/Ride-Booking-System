@@ -40,17 +40,30 @@ const FinishRide = (props) => {
         },
         {
           headers: {
+            // ⚠️ CAPTAIN ka token (login ke baad jo store kiya hai)
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
         }
       )
 
+      console.log('End ride response:', response.data)
+
       if (response.status === 200) {
+        // panel band + captain home
+        props.setFinishRidePanel(false)
         navigate('/captain-home')
+      } else {
+        alert(
+          response.data?.message ||
+            'Failed to finish ride. Please try again.'
+        )
       }
     } catch (err) {
       console.error('End ride error:', err)
-      alert('Failed to finish ride. Please try again.')
+      alert(
+        err.response?.data?.message ||
+          'Failed to finish ride. Please try again.'
+      )
     }
   }
 

@@ -22,6 +22,7 @@ import UserTrips from './pages/UserTrips'
 
 import CaptainForgotPassword from './pages/CaptainForgotPassword'
 import CaptainResetPassword from './pages/CaptainResetPassword'
+import Payment from './pages/Payment'          // ⭐ NEW
 
 const App = () => {
   return (
@@ -36,6 +37,14 @@ const App = () => {
         {/* Rides */}
         <Route path="/riding" element={<Riding />} />
         <Route path="/captain-riding" element={<CaptainRiding />} />
+        <Route
+          path="/payment"
+          element={
+            <UserProtectWrapper>
+              <Payment />
+            </UserProtectWrapper>
+          }
+        />
 
         {/* User Forgot / Reset password */}
         <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -108,6 +117,3 @@ const App = () => {
 }
 
 export default App
-
-
-

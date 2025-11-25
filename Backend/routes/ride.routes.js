@@ -7,6 +7,8 @@ import * as authMiddleware from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
+// ---------------- USER SIDE ----------------
+
 router.post(
   "/create",
   authMiddleware.authUser,
@@ -39,6 +41,22 @@ router.get(
   rideController.getFare
 );
 
+// user side – payment complete (cash or online)
+router.post(
+  "/complete-cash",
+  authMiddleware.authUser,
+  body("rideId").isMongoId().withMessage("Invalid ride id"),
+  rideController.completeRideCash
+);
+
+router.get(
+  "/user",
+  authMiddleware.authUser,
+  rideController.getUserRides
+);
+
+// ---------------- CAPTAIN SIDE ----------------
+
 router.post(
   "/confirm",
   authMiddleware.authCaptain,
@@ -57,6 +75,7 @@ router.get(
   rideController.startRide
 );
 
+// ✅ Captain: finish ride
 router.post(
   "/end-ride",
   authMiddleware.authCaptain,
@@ -65,18 +84,9 @@ router.post(
 );
 
 router.get(
-  "/user",
-  authMiddleware.authUser,
-  rideController.getUserRides
-);
-
-router.get(
   "/captain",
   authMiddleware.authCaptain,
   rideController.getCaptainRides
 );
 
-
 export default router;
-
-

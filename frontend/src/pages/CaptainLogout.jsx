@@ -31,3 +31,4 @@ export const CaptainLogout = () => {
 }
 
 export default CaptainLogout
+

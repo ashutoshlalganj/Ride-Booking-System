@@ -16,7 +16,6 @@ const UserSignup = () => {
   const submitHandler = async (e) => {
     e.preventDefault()
 
-    // ⚠️ IMPORTANT: backend jo body expect karta hai
     const payload = {
       fullname: {
         firstname: firstName.trim(),
@@ -34,7 +33,6 @@ const UserSignup = () => {
         payload
       )
 
-      // Success
       const data = res.data
       setUser(data.user)
       localStorage.setItem('token', data.token)
@@ -81,26 +79,27 @@ const UserSignup = () => {
 
         {/* Form */}
         <form onSubmit={submitHandler} className="space-y-4">
-          {/* Name row */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-sm font-medium text-gray-800 mb-1 block">
-                What&apos;s your name
-              </label>
+          {/* Name row (fixed) */}
+          <div>
+            <label className="text-sm font-medium text-gray-800 mb-1 block">
+              What&apos;s your name
+            </label>
+
+            <div className="grid grid-cols-2 gap-3">
               <input
                 required
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                className="bg-gray-50 rounded-xl px-4 py-2.5 border border-gray-200 w-full text-sm focus:outline-none focus:ring-2 focus:ring-black/80 focus:border-black"
+                className="bg-gray-50 rounded-xl px-4 py-2.5 border border-gray-200 w-full text-sm
+                           focus:outline-none focus:ring-2 focus:ring-black/80 focus:border-black"
                 type="text"
                 placeholder="First name"
               />
-            </div>
-            <div className="pt-6 sm:pt-0">
               <input
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                className="bg-gray-50 rounded-xl px-4 py-2.5 border border-gray-200 w-full text-sm mt-[1.35rem] sm:mt-0 focus:outline-none focus:ring-2 focus:ring-black/80 focus:border-black"
+                className="bg-gray-50 rounded-xl px-4 py-2.5 border border-gray-200 w-full text-sm
+                           focus:outline-none focus:ring-2 focus:ring-black/80 focus:border-black"
                 type="text"
                 placeholder="Last name (optional)"
               />
@@ -116,7 +115,8 @@ const UserSignup = () => {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="bg-gray-50 rounded-xl px-4 py-2.5 border border-gray-200 w-full text-sm focus:outline-none focus:ring-2 focus:ring-black/80 focus:border-black"
+              className="bg-gray-50 rounded-xl px-4 py-2.5 border border-gray-200 w-full text-sm
+                         focus:outline-none focus:ring-2 focus:ring-black/80 focus:border-black"
               type="email"
               placeholder="email@example.com"
             />
@@ -131,7 +131,8 @@ const UserSignup = () => {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="bg-gray-50 rounded-xl px-4 py-2.5 border border-gray-200 w-full text-sm focus:outline-none focus:ring-2 focus:ring-black/80 focus:border-black"
+              className="bg-gray-50 rounded-xl px-4 py-2.5 border border-gray-200 w-full text-sm
+                         focus:outline-none focus:ring-2 focus:ring-black/80 focus:border-black"
               type="password"
               placeholder="At least 6 characters"
             />
@@ -144,7 +145,8 @@ const UserSignup = () => {
           <button
             type="submit"
             disabled={loading}
-            className="mt-2 inline-flex w-full items-center justify-center rounded-xl bg-black text-white text-sm font-semibold py-2.5 hover:bg-black/90 disabled:opacity-60"
+            className="mt-2 inline-flex w-full items-center justify-center rounded-xl bg-black
+                       text-white text-sm font-semibold py-2.5 hover:bg-black/90 disabled:opacity-60"
           >
             {loading ? 'Creating account...' : 'Create account'}
           </button>
@@ -172,7 +174,7 @@ const UserSignup = () => {
       </div>
     </div>
   )
-  
 }
 
 export default UserSignup
+
