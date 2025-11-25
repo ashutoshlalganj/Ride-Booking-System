@@ -42,7 +42,7 @@ const Riding = () => {
                         <div className='flex items-center gap-5 p-3 border-b-2'>
                             <i className="text-lg ri-map-pin-2-fill"></i>
                             <div>
-                                <h3 className='text-lg font-medium'>562/11-A</h3>
+                                <h3 className='text-lg font-medium'>  </h3>
                                 <p className='text-sm -mt-1 text-gray-600'>{ride?.destination}</p>
                             </div>
                         </div>
@@ -50,7 +50,7 @@ const Riding = () => {
                             <i className="ri-currency-line"></i>
                             <div>
                                 <h3 className='text-lg font-medium'>₹{ride?.fare} </h3>
-                                <p className='text-sm -mt-1 text-gray-600'>Cash Cash</p>
+                                <p className='text-sm -mt-1 text-gray-600'>Cash</p>
                             </div>
                         </div>
                     </div>

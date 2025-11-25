@@ -20,28 +20,44 @@ import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
 import UserTrips from './pages/UserTrips'
 
+import CaptainForgotPassword from './pages/CaptainForgotPassword'
+import CaptainResetPassword from './pages/CaptainResetPassword'
+
 const App = () => {
   return (
     <div>
       <Routes>
-        <Route path='/' element={<Start />} />
+        <Route path="/" element={<Start />} />
 
-        <Route path='/login' element={<UserLogin />} />
-        <Route path='/signup' element={<UserSignup />} />
+        {/* User auth */}
+        <Route path="/login" element={<UserLogin />} />
+        <Route path="/signup" element={<UserSignup />} />
 
-        <Route path='/riding' element={<Riding />} />
-        <Route path='/captain-riding' element={<CaptainRiding />} />
+        {/* Rides */}
+        <Route path="/riding" element={<Riding />} />
+        <Route path="/captain-riding" element={<CaptainRiding />} />
 
-        {/* Forgot / Reset password */}
-        <Route path='/forgot-password' element={<ForgotPassword />} />
-        <Route path='/reset-password/:token' element={<ResetPassword />} />
+        {/* User Forgot / Reset password */}
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
 
-        <Route path='/captain-login' element={<Captainlogin />} />
-        <Route path='/captain-signup' element={<CaptainSignup />} />
+        {/* Captain auth */}
+        <Route path="/captain-login" element={<Captainlogin />} />
+        <Route path="/captain-signup" element={<CaptainSignup />} />
+
+        {/* Captain Forgot / Reset password */}
+        <Route
+          path="/captain-forgot-password"
+          element={<CaptainForgotPassword />}
+        />
+        <Route
+          path="/captain-reset-password/:token"
+          element={<CaptainResetPassword />}
+        />
 
         {/* Protected user routes */}
         <Route
-          path='/home'
+          path="/home"
           element={
             <UserProtectWrapper>
               <Home />
@@ -50,7 +66,7 @@ const App = () => {
         />
 
         <Route
-          path='/user/logout'
+          path="/user/logout"
           element={
             <UserProtectWrapper>
               <UserLogout />
@@ -60,7 +76,7 @@ const App = () => {
 
         {/* Protected captain routes */}
         <Route
-          path='/captain-home'
+          path="/captain-home"
           element={
             <CaptainProtectWrapper>
               <CaptainHome />
@@ -69,7 +85,7 @@ const App = () => {
         />
 
         <Route
-          path='/captain/logout'
+          path="/captain/logout"
           element={
             <CaptainProtectWrapper>
               <CaptainLogout />
@@ -77,9 +93,9 @@ const App = () => {
           }
         />
 
-        {/* ✅ Trips route AB Routes ke andar hai */}
+        {/* Trips (user) */}
         <Route
-          path='/trips'
+          path="/trips"
           element={
             <UserProtectWrapper>
               <UserTrips />

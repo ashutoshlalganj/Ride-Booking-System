@@ -96,6 +96,16 @@ const Captainlogin = () => {
               type="password"
               placeholder="password"
             />
+
+            {/* Captain specific forgot password */}
+            <div className="mt-1 flex justify-end">
+              <Link
+                to="/captain-forgot-password"
+                className="text-xs font-medium text-blue-600 hover:underline"
+              >
+                Forgot password?
+              </Link>
+            </div>
           </div>
 
           <button

@@ -89,6 +89,7 @@ export async function getAutoCompleteSuggestions(input) {
 export async function getCaptainsInTheRadius(ltd, lng, radius) {
   // radius in km
   const captains = await captainModel.find({
+    status: "active", // ✅ sirf online / active captains
     location: {
       $geoWithin: {
         $centerSphere: [[ltd, lng], radius / 6371],

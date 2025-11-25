@@ -7,6 +7,7 @@ import * as authMiddleware from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
+// REGISTER
 router.post(
   "/register",
   [
@@ -33,6 +34,7 @@ router.post(
   captainController.registerCaptain
 );
 
+// LOGIN
 router.post(
   "/login",
   [
@@ -44,18 +46,37 @@ router.post(
   captainController.loginCaptain
 );
 
+// PROFILE
 router.get(
   "/profile",
   authMiddleware.authCaptain,
   captainController.getCaptainProfile
 );
 
+// LOGOUT
 router.get(
   "/logout",
   authMiddleware.authCaptain,
   captainController.logoutCaptain
 );
 
-export default router;
+// ONLINE / OFFLINE STATUS UPDATE
+router.patch(
+  "/status",
+  authMiddleware.authCaptain,
+  captainController.updateCaptainStatus
+);
 
+// CAPTAIN SUMMARY (today trips + earnings, total, etc.)
+router.get(
+  "/summary",
+  authMiddleware.authCaptain,
+  captainController.getCaptainSummary
+);
+
+// FORGOT & RESET PASSWORD (CAPTAIN)
+router.post("/forgot-password", captainController.forgotPassword);
+router.post("/reset-password", captainController.resetPassword);
+
+export default router;
 
