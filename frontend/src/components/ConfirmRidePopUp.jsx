@@ -1,6 +1,27 @@
+// src/components/ConfirmRidePopUp.jsx
+
 import React, { useState } from 'react'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
+
+const getShortLabel = (address) => {
+  if (!address) return ''
+  const [first] = address.split(',')
+  return first?.trim() || address
+}
+
+const getDistanceLabel = (ride) => {
+  const raw =
+    ride?.distanceText ||
+    ride?.distance?.text ||
+    ride?.distance ||
+    ''
+
+  if (!raw) return '— KM'
+  const match = String(raw).match(/[\d.]+/)
+  const num = match ? match[0] : null
+  return num ? `${num} KM` : `${raw}`
+}
 
 const ConfirmRidePopUp = (props) => {
   const [otp, setOtp] = useState('')
@@ -8,15 +29,11 @@ const ConfirmRidePopUp = (props) => {
   const [error, setError] = useState('')
   const navigate = useNavigate()
 
-  const ride = props.ride
+  const ride = props.ride || {}
 
-  const distanceLabel =
-    ride?.distance?.text || ride?.distance || '— KM'
-
-  const pickupShort =
-    ride?.pickup?.split(',')[0] || ride?.pickup || ''
-  const destinationShort =
-    ride?.destination?.split(',')[0] || ride?.destination || ''
+  const distanceLabel = getDistanceLabel(ride)
+  const pickupShort = getShortLabel(ride.pickup)
+  const destinationShort = getShortLabel(ride.destination)
 
   const submitHander = async (e) => {
     e.preventDefault()
@@ -50,7 +67,8 @@ const ConfirmRidePopUp = (props) => {
     } catch (err) {
       console.error(err)
       setError(
-        err.response?.data?.message || 'Invalid OTP or unable to start ride.'
+        err.response?.data?.message ||
+          'Invalid OTP or unable to start ride.'
       )
     } finally {
       setLoading(false)
@@ -72,6 +90,7 @@ const ConfirmRidePopUp = (props) => {
         Confirm this ride to Start
       </h3>
 
+      {/* Rider + distance */}
       <div className="flex items-center justify-between p-3 border-2 border-yellow-400 rounded-lg mt-4">
         <div className="flex items-center gap-3">
           <img
@@ -79,7 +98,7 @@ const ConfirmRidePopUp = (props) => {
             src="https://i.pinimg.com/736x/55/86/bc/5586bcc6bb651aca48029cc5d77e85fd.jpg"
             alt="user"
           />
-        <h2 className="text-lg font-medium capitalize">
+          <h2 className="text-lg font-medium capitalize">
             {ride?.user?.fullname?.firstname}
           </h2>
         </div>
@@ -88,13 +107,18 @@ const ConfirmRidePopUp = (props) => {
 
       <div className="flex gap-2 justify-between flex-col items-center">
         <div className="w-full mt-5">
+          {/* Pickup */}
           <div className="flex items-center gap-5 p-3 border-b-2">
             <i className="ri-map-pin-user-fill"></i>
             <div>
               <h3 className="text-lg font-medium">{pickupShort}</h3>
-              <p className="text-sm -mt-1 text-gray-600">{ride?.pickup}</p>
+              <p className="text-sm -mt-1 text-gray-600">
+                {ride?.pickup}
+              </p>
             </div>
           </div>
+
+          {/* Destination */}
           <div className="flex items-center gap-5 p-3 border-b-2">
             <i className="text-lg ri-map-pin-2-fill"></i>
             <div>
@@ -104,6 +128,8 @@ const ConfirmRidePopUp = (props) => {
               </p>
             </div>
           </div>
+
+          {/* Fare */}
           <div className="flex items-center gap-5 p-3">
             <i className="ri-currency-line"></i>
             <div>
@@ -125,7 +151,9 @@ const ConfirmRidePopUp = (props) => {
             />
 
             {error && (
-              <p className="mt-2 text-xs text-red-600 text-center">{error}</p>
+              <p className="mt-2 text-xs text-red-600 text-center">
+                {error}
+              </p>
             )}
 
             <button

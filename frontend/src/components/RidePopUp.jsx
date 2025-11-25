@@ -1,15 +1,34 @@
+// src/components/RidePopUp.jsx
+
 import React from 'react'
 
+const getShortLabel = (address) => {
+  if (!address) return ''
+  const [first] = address.split(',')
+  return first?.trim() || address
+}
+
+// Distance ko X KM format me
+const getDistanceLabel = (ride) => {
+  const raw =
+    ride?.distanceText ||
+    ride?.distance?.text ||
+    ride?.distance ||
+    ''
+
+  if (!raw) return '— KM'
+
+  const match = String(raw).match(/[\d.]+/)
+  const num = match ? match[0] : null
+  return num ? `${num} KM` : `${raw}`
+}
+
 const RidePopUp = (props) => {
-  const ride = props.ride
+  const ride = props.ride || {}
 
-  const distanceLabel =
-    ride?.distance?.text || ride?.distance || '— KM'
-
-  const pickupShort =
-    ride?.pickup?.split(',')[0] || ride?.pickup || ''
-  const destinationShort =
-    ride?.destination?.split(',')[0] || ride?.destination || ''
+  const distanceLabel = getDistanceLabel(ride)
+  const pickupShort = getShortLabel(ride.pickup)
+  const destinationShort = getShortLabel(ride.destination)
 
   return (
     <div>
@@ -32,7 +51,7 @@ const RidePopUp = (props) => {
             src="https://img.freepik.com/free-photo/3d-cartoon-character_23-2151021986.jpg?semt=ais_hybrid&w=740&q=80"
             alt="user"
           />
-          <h2 className="text-lg font-medium">
+          <h2 className="text-lg font-medium capitalize">
             {ride?.user?.fullname?.firstname}{' '}
             {ride?.user?.fullname?.lastname}
           </h2>
@@ -42,26 +61,33 @@ const RidePopUp = (props) => {
 
       <div className="flex gap-2 justify-between flex-col items-center">
         <div className="w-full mt-5">
+          {/* Pickup */}
           <div className="flex items-center gap-5 p-3 border-b-2">
             <i className="ri-map-pin-user-fill"></i>
             <div>
               <h3 className="text-lg font-medium">{pickupShort}</h3>
-              <p className="text-sm -mt-1 text-gray-600">{ride?.pickup}</p>
+              <p className="text-sm -mt-1 text-gray-600">
+                {ride.pickup}
+              </p>
             </div>
           </div>
+
+          {/* Destination */}
           <div className="flex items-center gap-5 p-3 border-b-2">
             <i className="text-lg ri-map-pin-2-fill"></i>
             <div>
               <h3 className="text-lg font-medium">{destinationShort}</h3>
               <p className="text-sm -mt-1 text-gray-600">
-                {ride?.destination}
+                {ride.destination}
               </p>
             </div>
           </div>
+
+          {/* Fare */}
           <div className="flex items-center gap-5 p-3">
             <i className="ri-currency-line"></i>
             <div>
-              <h3 className="text-lg font-medium">₹{ride?.fare}</h3>
+              <h3 className="text-lg font-medium">₹{ride.fare}</h3>
               <p className="text-sm -mt-1 text-gray-600">Cash</p>
             </div>
           </div>
@@ -93,5 +119,3 @@ const RidePopUp = (props) => {
 }
 
 export default RidePopUp
-
-

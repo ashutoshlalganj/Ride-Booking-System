@@ -1,34 +1,56 @@
+// src/components/FinishRide.jsx
+
 import React from 'react'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 
+const getShortLabel = (address) => {
+  if (!address) return ''
+  const [first] = address.split(',')
+  return first?.trim() || address
+}
+
+const getDistanceLabel = (ride) => {
+  const raw =
+    ride?.distanceText ||
+    ride?.distance?.text ||
+    ride?.distance ||
+    ''
+
+  if (!raw) return '— KM'
+  const match = String(raw).match(/[\d.]+/)
+  const num = match ? match[0] : null
+  return num ? `${num} KM` : `${raw}`
+}
+
 const FinishRide = (props) => {
   const navigate = useNavigate()
-  const ride = props.ride
+  const ride = props.ride || {}
 
-  const distanceLabel =
-    ride?.distance?.text || ride?.distance || '— KM'
-
-  const pickupShort =
-    ride?.pickup?.split(',')[0] || ride?.pickup || ''
-  const destinationShort =
-    ride?.destination?.split(',')[0] || ride?.destination || ''
+  const distanceLabel = getDistanceLabel(ride)
+  const pickupShort = getShortLabel(ride.pickup)
+  const destinationShort = getShortLabel(ride.destination)
 
   async function endRide() {
-    const response = await axios.post(
-      `${import.meta.env.VITE_BASE_URL}/rides/end-ride`,
-      {
-        rideId: ride._id,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/rides/end-ride`,
+        {
+          rideId: ride._id,
         },
-      }
-    )
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        }
+      )
 
-    if (response.status === 200) {
-      navigate('/captain-home')
+      if (response.status === 200) {
+        navigate('/captain-home')
+      }
+    } catch (err) {
+      console.error('End ride error:', err)
+      alert('Failed to finish ride. Please try again.')
     }
   }
 
@@ -45,6 +67,7 @@ const FinishRide = (props) => {
 
       <h3 className="text-2xl font-semibold mb-5">Finish this Ride</h3>
 
+      {/* Rider row */}
       <div className="flex items-center justify-between p-4 border-2 border-yellow-400 rounded-lg mt-4">
         <div className="flex items-center gap-3">
           <img
@@ -52,7 +75,7 @@ const FinishRide = (props) => {
             src="https://i.pinimg.com/736x/55/86/bc/5586bcc6bb651aca48029cc5d77e85fd.jpg"
             alt="user"
           />
-          <h2 className="text-lg font-medium">
+          <h2 className="text-lg font-medium capitalize">
             {ride?.user?.fullname?.firstname}
           </h2>
         </div>
@@ -61,13 +84,18 @@ const FinishRide = (props) => {
 
       <div className="flex gap-2 justify-between flex-col items-center">
         <div className="w-full mt-5">
+          {/* Pickup */}
           <div className="flex items-center gap-5 p-3 border-b-2">
             <i className="ri-map-pin-user-fill"></i>
             <div>
               <h3 className="text-lg font-medium">{pickupShort}</h3>
-              <p className="text-sm -mt-1 text-gray-600">{ride?.pickup}</p>
+              <p className="text-sm -mt-1 text-gray-600">
+                {ride?.pickup}
+              </p>
             </div>
           </div>
+
+          {/* Destination */}
           <div className="flex items-center gap-5 p-3 border-b-2">
             <i className="text-lg ri-map-pin-2-fill"></i>
             <div>
@@ -77,6 +105,8 @@ const FinishRide = (props) => {
               </p>
             </div>
           </div>
+
+          {/* Fare */}
           <div className="flex items-center gap-5 p-3">
             <i className="ri-currency-line"></i>
             <div>
@@ -100,6 +130,3 @@ const FinishRide = (props) => {
 }
 
 export default FinishRide
-
-
-

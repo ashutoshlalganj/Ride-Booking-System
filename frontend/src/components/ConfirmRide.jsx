@@ -10,10 +10,28 @@ const ConfirmRide = ({
   onBack,
   onConfirm,
 }) => {
-  const amount =
+  // amount nikalna – fare[vehicleType] ya direct number
+  const rawAmount =
     vehicleType && fare && typeof fare[vehicleType] !== 'undefined'
       ? fare[vehicleType]
-      : ''
+      : fare
+
+  const amount =
+    typeof rawAmount === 'number'
+      ? rawAmount
+      : typeof rawAmount === 'object'
+      ? rawAmount?.fare ?? rawAmount?.price
+      : rawAmount
+
+  // address ka first part (comma se pehle)
+  const getShortLabel = (address) => {
+    if (!address) return ''
+    const [first] = address.split(',')
+    return first?.trim() || address
+  }
+
+  const pickupShort = getShortLabel(pickup)
+  const destinationShort = getShortLabel(destination)
 
   return (
     <div>
@@ -31,23 +49,33 @@ const ConfirmRide = ({
         <img
           className="h-20"
           src="https://swyft.pl/wp-content/uploads/2023/05/how-many-people-can-a-uberx-take.jpg"
-          alt=""
+          alt="vehicle"
         />
+
         <div className="w-full mt-5">
+          {/* Pickup */}
           <div className="flex items-center gap-5 p-3 border-b-2">
             <i className="ri-map-pin-user-fill"></i>
             <div>
-              <h3 className="text-lg font-medium">562/11-A</h3>
+              <h3 className="text-lg font-medium">
+                {pickupShort || 'Pickup'}
+              </h3>
               <p className="text-sm -mt-1 text-gray-600">{pickup}</p>
             </div>
           </div>
+
+          {/* Destination */}
           <div className="flex items-center gap-5 p-3 border-b-2">
             <i className="text-lg ri-map-pin-2-fill"></i>
             <div>
-              <h3 className="text-lg font-medium">562/11-A</h3>
+              <h3 className="text-lg font-medium">
+                {destinationShort || 'Destination'}
+              </h3>
               <p className="text-sm -mt-1 text-gray-600">{destination}</p>
             </div>
           </div>
+
+          {/* Fare */}
           <div className="flex items-center gap-5 p-3">
             <i className="ri-currency-line"></i>
             <div>
@@ -58,6 +86,7 @@ const ConfirmRide = ({
             </div>
           </div>
         </div>
+
         <button
           onClick={onConfirm}
           className="w-full mt-5 bg-green-600 text-white font-semibold p-2 rounded-lg"
@@ -70,4 +99,3 @@ const ConfirmRide = ({
 }
 
 export default ConfirmRide
-
