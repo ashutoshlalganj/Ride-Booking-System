@@ -18,6 +18,7 @@ const defaultCenter = {
 }
 
 /**
+ * 
  * LiveTracking
  * props:
  *  - pickup: string (address)
