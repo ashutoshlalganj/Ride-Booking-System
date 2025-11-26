@@ -32,18 +32,19 @@ router.post(
   userController.loginUser
 );
 
-// Forgot password
+// Forgot password – send OTP
 router.post(
   "/forgot-password",
   [body("email").isEmail().withMessage("Invalid Email")],
   userController.forgotPassword
 );
 
-// Reset password
+// Reset password – email + OTP + new password
 router.post(
   "/reset-password",
   [
-    body("token").notEmpty().withMessage("Token is required"),
+    body("email").isEmail().withMessage("Invalid Email"),
+    body("otp").isLength({ min: 4 }).withMessage("OTP is required"),
     body("password")
       .isLength({ min: 6 })
       .withMessage("Password must be at least 6 characters long"),

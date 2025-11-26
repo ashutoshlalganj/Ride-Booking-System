@@ -7,7 +7,7 @@ import * as authMiddleware from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
-// REGISTER
+// REGISTER (2-step OTP)
 router.post(
   "/register",
   [
@@ -67,16 +67,27 @@ router.patch(
   captainController.updateCaptainStatus
 );
 
-// CAPTAIN SUMMARY (today trips + earnings, total, etc.)
+// CAPTAIN SUMMARY
 router.get(
   "/summary",
   authMiddleware.authCaptain,
   captainController.getCaptainSummary
 );
 
-// FORGOT & RESET PASSWORD (CAPTAIN)
+// FORGOT PASSWORD (OTP)
 router.post("/forgot-password", captainController.forgotPassword);
-router.post("/reset-password", captainController.resetPassword);
+
+// RESET PASSWORD (email + OTP + new password)
+router.post(
+  "/reset-password",
+  [
+    body("email").isEmail().withMessage("Invalid Email"),
+    body("otp").isLength({ min: 4 }).withMessage("OTP is required"),
+    body("password")
+      .isLength({ min: 6 })
+      .withMessage("Password must be at least 6 characters long"),
+  ],
+  captainController.resetPassword
+);
 
 export default router;
-

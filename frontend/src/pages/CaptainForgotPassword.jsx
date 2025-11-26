@@ -1,14 +1,16 @@
-// src/pages/CaptainForgotPassword.jsx
-
 import React, { useState } from 'react'
 import axios from 'axios'
 
 const CaptainForgotPassword = () => {
+  const [step, setStep] = useState(1)
   const [email, setEmail] = useState('')
+  const [otp, setOtp] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirm, setConfirm] = useState('')
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const submitHandler = async (e) => {
+  const handleSendOtp = async (e) => {
     e.preventDefault()
     setLoading(true)
     setMessage('')
@@ -21,20 +23,43 @@ const CaptainForgotPassword = () => {
 
       setMessage(
         res.data.message ||
-          'If this email exists, a reset link has been generated.'
+          'If this email is registered, an OTP has been sent.'
       )
-
-      // testing ke liye agar resetLink aaye to usse bhi dikhado
-      if (res.data.resetLink) {
-        setMessage(
-          `${res.data.message} Reset link: ${res.data.resetLink}`
-        )
-      }
+      setStep(2)
     } catch (err) {
       console.error(err)
       setMessage(
         err.response?.data?.message ||
           'Something went wrong. Please try again.'
+      )
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+    setMessage('')
+
+    if (password !== confirm) {
+      setMessage('Passwords do not match')
+      setLoading(false)
+      return
+    }
+
+    try {
+      const res = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/captains/reset-password`,
+        { email, otp, password }
+      )
+
+      setMessage(res.data.message || 'Password reset successfully.')
+    } catch (err) {
+      console.error(err)
+      setMessage(
+        err.response?.data?.message ||
+          'Failed to reset password. Try again.'
       )
     } finally {
       setLoading(false)
@@ -48,32 +73,95 @@ const CaptainForgotPassword = () => {
           Captain – Forgot Password
         </h1>
         <p className="text-xs text-gray-500 mb-5 text-center">
-          Enter your registered captain email. We&apos;ll send you a reset link
-          (dev mode me link yahi dikhega).
+          Enter your registered captain email. We&apos;ll send you an OTP to reset your password.
         </p>
 
-        <form onSubmit={submitHandler} className="space-y-4">
-          <div>
-            <label className="block mb-1 text-sm font-medium">
-              Captain email
-            </label>
-            <input
-              type="email"
-              className="w-full border rounded-xl px-3 py-2.5 bg-gray-50 outline-none text-sm focus:ring-2 focus:ring-black/80"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
+        {step === 1 && (
+          <form onSubmit={handleSendOtp} className="space-y-4">
+            <div>
+              <label className="block mb-1 text-sm font-medium">
+                Captain email
+              </label>
+              <input
+                type="email"
+                className="w-full border rounded-xl px-3 py-2.5 bg-gray-50 outline-none text-sm focus:ring-2 focus:ring-black/80"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-black text-white py-2.5 rounded-xl text-sm font-semibold disabled:opacity-60"
-          >
-            {loading ? 'Sending...' : 'Send reset link'}
-          </button>
-        </form>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-black text-white py-2.5 rounded-xl text-sm font-semibold disabled:opacity-60"
+            >
+              {loading ? 'Sending...' : 'Send OTP'}
+            </button>
+          </form>
+        )}
+
+        {step === 2 && (
+          <form onSubmit={handleResetPassword} className="space-y-4">
+            <div>
+              <label className="block mb-1 text-sm font-medium">
+                Email (locked)
+              </label>
+              <input
+                type="email"
+                className="w-full border rounded-xl px-3 py-2.5 bg-gray-100 outline-none text-sm text-gray-500"
+                value={email}
+                disabled
+              />
+            </div>
+
+            <div>
+              <label className="block mb-1 text-sm font-medium">OTP</label>
+              <input
+                type="text"
+                className="w-full border rounded-xl px-3 py-2.5 bg-gray-50 outline-none text-sm focus:ring-2 focus:ring-black/80"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                required
+                placeholder="Enter OTP sent to email"
+              />
+            </div>
+
+            <div>
+              <label className="block mb-1 text-sm font-medium">
+                New password
+              </label>
+              <input
+                type="password"
+                className="w-full border rounded-xl px-3 py-2.5 bg-gray-50 outline-none text-sm focus:ring-2 focus:ring-black/80"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block mb-1 text-sm font-medium">
+                Confirm password
+              </label>
+              <input
+                type="password"
+                className="w-full border rounded-xl px-3 py-2.5 bg-gray-50 outline-none text-sm focus:ring-2 focus:ring-black/80"
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-black text-white py-2.5 rounded-xl text-sm font-semibold disabled:opacity-60"
+            >
+              {loading ? 'Resetting...' : 'Reset Password'}
+            </button>
+          </form>
+        )}
 
         {message && (
           <p className="mt-4 text-center text-xs text-gray-700 whitespace-pre-wrap">
@@ -86,4 +174,3 @@ const CaptainForgotPassword = () => {
 }
 
 export default CaptainForgotPassword
-

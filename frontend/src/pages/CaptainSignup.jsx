@@ -16,12 +16,17 @@ const CaptainSignup = () => {
   const [vehicleCapacity, setVehicleCapacity] = useState('')
   const [vehicleType, setVehicleType] = useState('')
 
+  const [otp, setOtp] = useState('')
+  const [otpSent, setOtpSent] = useState(false)
+  const [message, setMessage] = useState('')
+
   const [loading, setLoading] = useState(false)
 
   const { setCaptain } = useContext(CaptainDataContext)
 
   const submitHandler = async (e) => {
     e.preventDefault()
+    setMessage('')
 
     const captainData = {
       fullname: {
@@ -40,18 +45,39 @@ const CaptainSignup = () => {
 
     try {
       setLoading(true)
-      const response = await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/captains/register`,
-        captainData
-      )
 
-      if (response.status === 201) {
-        const data = response.data
+      if (!otpSent) {
+        // STEP 1: send OTP
+        const res = await axios.post(
+          `${import.meta.env.VITE_BASE_URL}/captains/register`,
+          captainData
+        )
+
+        setOtpSent(true)
+        setMessage(
+          res.data.message ||
+            'OTP sent to your email. Please enter OTP below to complete signup.'
+        )
+      } else {
+        // STEP 2: verify OTP & create account
+        if (!otp.trim()) {
+          alert('Please enter the OTP sent to your email')
+          setLoading(false)
+          return
+        }
+
+        const res = await axios.post(
+          `${import.meta.env.VITE_BASE_URL}/captains/register`,
+          {
+            ...captainData,
+            otp: otp.trim(),
+          }
+        )
+
+        const data = res.data
         setCaptain(data.captain)
         localStorage.setItem('token', data.token)
         navigate('/captain-home')
-      } else {
-        alert('Captain signup failed. Please try again.')
       }
     } catch (err) {
       console.error('Captain signup error:', err)
@@ -106,6 +132,7 @@ const CaptainSignup = () => {
                   placeholder="First name"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
+                  disabled={otpSent}
                 />
                 <input
                   required
@@ -114,6 +141,7 @@ const CaptainSignup = () => {
                   placeholder="Last name"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
+                  disabled={otpSent}
                 />
               </div>
             </div>
@@ -129,6 +157,7 @@ const CaptainSignup = () => {
                 placeholder="email@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                disabled={otpSent}
               />
             </div>
 
@@ -143,6 +172,7 @@ const CaptainSignup = () => {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                disabled={otpSent}
               />
               <p className="text-[11px] text-gray-400 mt-1">
                 Use a strong password that you don&apos;t reuse elsewhere.
@@ -164,6 +194,7 @@ const CaptainSignup = () => {
                   placeholder="Vehicle color"
                   value={vehicleColor}
                   onChange={(e) => setVehicleColor(e.target.value)}
+                  disabled={otpSent}
                 />
                 <input
                   required
@@ -172,6 +203,7 @@ const CaptainSignup = () => {
                   placeholder="Vehicle plate"
                   value={vehiclePlate}
                   onChange={(e) => setVehiclePlate(e.target.value)}
+                  disabled={otpSent}
                 />
               </div>
 
@@ -183,12 +215,14 @@ const CaptainSignup = () => {
                   placeholder="Vehicle capacity"
                   value={vehicleCapacity}
                   onChange={(e) => setVehicleCapacity(e.target.value)}
+                  disabled={otpSent}
                 />
                 <select
                   required
                   className="bg-gray-50 w-1/2 rounded-xl px-4 py-2.5 border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-black/80 focus:border-black"
                   value={vehicleType}
                   onChange={(e) => setVehicleType(e.target.value)}
+                  disabled={otpSent}
                 >
                   <option value="" disabled>
                     Select vehicle type
@@ -200,13 +234,35 @@ const CaptainSignup = () => {
               </div>
             </div>
 
+            {/* OTP field (step 2) */}
+            {otpSent && (
+              <div>
+                <label className="text-sm font-medium text-gray-800 mb-1 block">
+                  Enter OTP sent to your email
+                </label>
+                <input
+                  className="bg-gray-50 rounded-xl px-4 py-2.5 border border-gray-200 w-full text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black/80 focus:border-black"
+                  type="text"
+                  placeholder="6-digit OTP"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                />
+              </div>
+            )}
+
             <div className="pt-1">
               <button
                 type="submit"
                 disabled={loading}
                 className="inline-flex w-full items-center justify-center rounded-xl bg-black text-white text-sm font-semibold py-2.5 hover:bg-black/90 disabled:opacity-60"
               >
-                {loading ? 'Creating account...' : 'Create Captain Account'}
+                {loading
+                  ? otpSent
+                    ? 'Verifying OTP...'
+                    : 'Sending OTP...'
+                  : otpSent
+                  ? 'Verify OTP & Create Captain Account'
+                  : 'Send OTP'}
               </button>
 
               <p className="mt-3 text-xs text-gray-500 text-center">
@@ -221,11 +277,13 @@ const CaptainSignup = () => {
             </div>
           </div>
         </form>
+
+        {message && (
+          <p className="mt-3 text-xs text-center text-gray-600">{message}</p>
+        )}
       </div>
     </div>
   )
 }
 
 export default CaptainSignup
-
-

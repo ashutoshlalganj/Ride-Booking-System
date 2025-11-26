@@ -68,8 +68,20 @@ const captainSchema = new mongoose.Schema(
       },
     },
 
-    // 🔹 Captain password reset fields
-    resetPasswordToken: {
+    // ⭐ Captain email verification
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    signupOtp: {
+      type: String,
+    },
+    signupOtpExpires: {
+      type: Date,
+    },
+
+    // ⭐ Captain forgot password via OTP
+    resetPasswordOtp: {
       type: String,
     },
     resetPasswordExpires: {
@@ -77,7 +89,7 @@ const captainSchema = new mongoose.Schema(
     },
   },
   {
-    timestamps: true, // createdAt, updatedAt (summary ke liye useful)
+    timestamps: true,
   }
 );
 

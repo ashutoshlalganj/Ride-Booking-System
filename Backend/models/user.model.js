@@ -44,15 +44,27 @@ const userSchema = new mongoose.Schema({
     select: false,
   },
 
-  // ⭐ NEW: saved places
+  // ⭐ Saved places
   savedPlaces: [savedPlaceSchema],
 
   socketId: {
     type: String,
   },
 
-  // Forgot / reset password
-  resetPasswordToken: {
+  // ⭐ Email verification (signup OTP)
+  isVerified: {
+    type: Boolean,
+    default: false,
+  },
+  signupOtp: {
+    type: String,
+  },
+  signupOtpExpires: {
+    type: Date,
+  },
+
+  // ⭐ Forgot password via OTP
+  resetPasswordOtp: {
     type: String,
   },
   resetPasswordExpires: {
@@ -80,4 +92,3 @@ userSchema.statics.hashPassword = async function (password) {
 const UserModel = mongoose.model("user", userSchema);
 
 export default UserModel;
-
